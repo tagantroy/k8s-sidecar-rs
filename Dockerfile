@@ -12,5 +12,6 @@ RUN touch src/main.rs src/lib.rs && cargo build --release --locked
 
 FROM gcr.io/distroless/cc-debian13:nonroot
 COPY --from=build /src/target/release/k8s-sidecar /usr/local/bin/k8s-sidecar
-USER nonroot
+# Numeric: Kubernetes can only verify runAsNonRoot for a numeric user.
+USER 65532:65532
 ENTRYPOINT ["/usr/local/bin/k8s-sidecar"]
