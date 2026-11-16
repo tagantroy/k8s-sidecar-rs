@@ -1,0 +1,40 @@
+[package]
+name = "k8s-sidecar-rs"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT OR Apache-2.0"
+description = "Small drop-in for kiwigrid/k8s-sidecar: syncs labelled ConfigMaps and Secrets to files and triggers a reload (e.g. Grafana dashboards and data sources)"
+repository = "https://github.com/tagantroy/k8s-sidecar-rs"
+readme = "README.md"
+keywords = ["kubernetes", "grafana", "configmap", "sidecar"]
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "k8s-sidecar"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+futures = { version = "0.3", default-features = false, features = ["std"] }
+k8s-openapi = { version = "0.28", default-features = false, features = ["v1_34"] }
+kube = { version = "4.2", default-features = false, features = ["client", "runtime", "rustls-tls", "ring"] }
+prometheus-client = "0.25"
+serde = "1"
+# Plain HTTP only: the reload call goes to a container in the same pod (localhost).
+reqwest = { version = "0.13", default-features = false }
+tokio = { version = "1.54", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time", "io-util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+[dev-dependencies]
+serde_json = "1"
+tempfile = "3.27"
+# Integration tests against a real k3s (#[ignore]d; `cargo test -- --ignored`, needs Docker).
+testcontainers = "0.27"
+testcontainers-modules = { version = "0.15", features = ["k3s"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
