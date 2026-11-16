@@ -2,13 +2,17 @@
 
 A small Rust drop-in for [kiwigrid/k8s-sidecar](https://github.com/kiwigrid/k8s-sidecar): it watches ConfigMaps and Secrets with a label, writes their data as files into a folder, and calls a reload URL after changes. Grafana's Helm chart runs two copies of it (dashboards and data sources).
 
-**Why:** the Python original uses ~80 MB per copy. This one uses about **13 MB** (measured on a real cluster with 26 dashboards), in a 6.8 MB binary.
+**Why:** the Python original uses ~80 MiB per copy. This one uses **1–2 MiB** (measured on a k3s cluster, below), in a 6.8 MB binary.
 
 | | kiwigrid/k8s-sidecar | k8s-sidecar-rs |
 |---|---|---|
-| Memory (one copy, 26 dashboards) | 78–83 MB | ~13 MB |
+| Memory: dashboards copy (26 ConfigMaps, 27 files, all namespaces) | 83 MiB | **2 MiB** |
+| Memory: data-sources copy | 78 MiB | **1 MiB** |
+| Image (compressed, amd64) | 29.2 MB (2.14.1) | 14.6 MB |
 | Language | Python | Rust (`kube`, `tokio`) |
-| Image | Python base | distroless, non-root |
+| Base | Python | distroless, non-root |
+
+Measured 2026-11-16 in the same Grafana pod (kube-prometheus-stack, k3s 1.37) before and after switching the image: working-set memory from `kubectl top pod --containers`, as kept by Prometheus (`container_memory_working_set_bytes`). Together: ~161 MiB → ~3 MiB.
 
 ## Use with Grafana's Helm chart
 Same environment variables as kiwigrid's, so only the image changes:
