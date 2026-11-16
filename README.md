@@ -15,14 +15,14 @@ A small Rust drop-in for [kiwigrid/k8s-sidecar](https://github.com/kiwigrid/k8s-
 Measured 2026-11-16 in the same Grafana pod (kube-prometheus-stack, k3s 1.37) before and after switching the image: working-set memory from `kubectl top pod --containers`, as kept by Prometheus (`container_memory_working_set_bytes`). Together: ~161 MiB → ~3 MiB.
 
 ## Use with Grafana's Helm chart
-Same environment variables as kiwigrid's, so only the image changes:
+Same environment variables as kiwigrid's, so only the image changes. Coming from kiwigrid? See the **[migration guide](docs/migrating-from-kiwigrid.md)**: what to check first, how to switch, verify and roll back.
 ```yaml
 grafana:                      # under kube-prometheus-stack; top level in the grafana chart
   sidecar:
     image:
       registry: ghcr.io
       repository: tagantroy/k8s-sidecar-rs
-      tag: 0.1.0
+      tag: "0.1.1"
 ```
 
 ## Settings
