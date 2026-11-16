@@ -1,0 +1,8 @@
+# cargo audit settings (CI job "audit"). Every ignore needs a reason and a way out.
+[advisories]
+ignore = [
+  # astral-tokio-tar is unmaintained (not a vulnerability). Test-only: testcontainers (the k3s
+  # end-to-end test) depends on it, in 0.27 and 0.28 alike; not in the shipped binary.
+  # Remove once testcontainers drops it.
+  "RUSTSEC-2026-0440",
+]
