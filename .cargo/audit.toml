@@ -5,4 +5,7 @@ ignore = [
   # end-to-end test) depends on it, in 0.27 and 0.28 alike; not in the shipped binary.
   # Remove once testcontainers drops it.
   "RUSTSEC-2026-0440",
+  # Test-only too: testcontainers -> serde_with -> chrono (unmaintained; listed 2026-11-18).
+  # Not in the shipped binary. Remove once testcontainers/serde_with drop chrono.
+  "RUSTSEC-2026-0543",
 ]
