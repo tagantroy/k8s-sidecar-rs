@@ -30,9 +30,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 [dev-dependencies]
 serde_json = "1"
 tempfile = "3.27"
-# Integration tests against a real k3s (#[ignore]d; `cargo test -- --ignored`, needs Docker).
-testcontainers = "0.27"
-testcontainers-modules = { version = "0.15", features = ["k3s"] }
 
 [profile.release]
 lto = true

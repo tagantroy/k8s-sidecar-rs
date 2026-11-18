@@ -1,6 +1,8 @@
 //! End to end against a real k3s in Docker: initial sync, updates, label removal, deletes,
 //! secrets in another namespace with a target-folder annotation, and the reload call.
 //! Run with `cargo test -- --ignored` (needs Docker that allows privileged containers).
+//! k3s is started with the `docker` command directly: a whole container-test framework
+//! (~150 crates) for one container isn't worth it.
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -14,9 +16,6 @@ use k8s_sidecar_rs::metrics::Metrics;
 use kube::api::{DeleteParams, ObjectMeta, Patch, PatchParams, PostParams};
 use kube::config::{KubeConfigOptions, Kubeconfig};
 use kube::{Api, Client};
-use testcontainers_modules::k3s::{K3s, KUBE_SECURE_PORT};
-use testcontainers_modules::testcontainers::ImageExt;
-use testcontainers_modules::testcontainers::runners::AsyncRunner;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
@@ -40,6 +39,82 @@ async fn reload_server() -> (String, Arc<AtomicUsize>) {
         }
     });
     (url, count)
+}
+
+/// The k3s version our clusters run; the image is published by the k3s maintainers.
+const K3S_IMAGE: &str = "rancher/k3s:v1.37.1-k3s1";
+
+/// A k3s server in Docker, removed on drop (also when the test fails).
+struct K3s {
+    id: String,
+}
+
+fn docker(args: &[&str]) -> String {
+    let out = std::process::Command::new("docker")
+        .args(args)
+        .output()
+        .expect("running docker");
+    assert!(
+        out.status.success(),
+        "docker {args:?} failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    String::from_utf8_lossy(&out.stdout).trim().to_string()
+}
+
+impl K3s {
+    fn start() -> Self {
+        let id = docker(&[
+            "run",
+            "-d",
+            "--privileged",
+            "--userns=host",
+            "-e",
+            "K3S_KUBECONFIG_MODE=644",
+            "-p",
+            "127.0.0.1::6443",
+            K3S_IMAGE,
+            "server",
+            "--snapshotter=native",
+        ]);
+        K3s { id }
+    }
+
+    /// Kubeconfig pointing at the published API port, once k3s has written it.
+    async fn kubeconfig(&self) -> Kubeconfig {
+        let port = docker(&["port", &self.id, "6443/tcp"]);
+        let port = port
+            .lines()
+            .next()
+            .and_then(|l| l.rsplit(':').next())
+            .expect("published port")
+            .to_string();
+        for _ in 0..240 {
+            let out = std::process::Command::new("docker")
+                .args(["exec", &self.id, "cat", "/etc/rancher/k3s/k3s.yaml"])
+                .output()
+                .expect("running docker");
+            if out.status.success() && !out.stdout.is_empty() {
+                let mut kc = Kubeconfig::from_yaml(&String::from_utf8_lossy(&out.stdout)).unwrap();
+                for c in &mut kc.clusters {
+                    if let Some(cluster) = c.cluster.as_mut() {
+                        cluster.server = Some(format!("https://127.0.0.1:{port}"));
+                    }
+                }
+                return kc;
+            }
+            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
+        panic!("k3s didn't write its kubeconfig within 2 minutes");
+    }
+}
+
+impl Drop for K3s {
+    fn drop(&mut self) {
+        let _ = std::process::Command::new("docker")
+            .args(["rm", "-f", &self.id])
+            .output();
+    }
 }
 
 async fn eventually(what: &str, mut check: impl FnMut() -> bool) {
@@ -80,21 +155,8 @@ fn cm(name: &str, labels: &[(&str, &str)], data: &[(&str, &str)]) -> ConfigMap {
 #[tokio::test]
 #[ignore = "needs Docker (privileged k3s container)"]
 async fn syncs_against_real_k3s() {
-    let conf = tempfile::tempdir().unwrap();
-    let k3s = K3s::default()
-        .with_conf_mount(conf.path())
-        .with_privileged(true)
-        .with_userns_mode("host")
-        .start()
-        .await
-        .expect("k3s started");
-    let port = k3s.get_host_port_ipv4(KUBE_SECURE_PORT).await.unwrap();
-    let mut kubeconfig = Kubeconfig::from_yaml(&k3s.image().read_kube_config().unwrap()).unwrap();
-    for c in &mut kubeconfig.clusters {
-        if let Some(cluster) = c.cluster.as_mut() {
-            cluster.server = Some(format!("https://127.0.0.1:{port}"));
-        }
-    }
+    let k3s = K3s::start();
+    let kubeconfig = k3s.kubeconfig().await;
     let client = Client::try_from(
         kube::Config::from_custom_kubeconfig(kubeconfig, &KubeConfigOptions::default())
             .await
