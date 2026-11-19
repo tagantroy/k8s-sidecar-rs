@@ -60,6 +60,15 @@ jobs:
         run: |
           docker buildx build . --platform linux/amd64 --load --tag k8s-sidecar-rs:ci \
             --cache-from type=gha,scope=sizes --cache-to type=gha,scope=sizes,mode=max
+      - name: Build for arm64 (cross-compiled) and check the binary
+        run: |
+          docker buildx build . --platform linux/arm64 --load --tag k8s-sidecar-rs:ci-arm64 \
+            --cache-from type=gha,scope=sizes-arm64 --cache-to type=gha,scope=sizes-arm64,mode=max
+          id=$(docker create --platform linux/arm64 k8s-sidecar-rs:ci-arm64)
+          docker cp "$id:/usr/local/bin/k8s-sidecar" "$RUNNER_TEMP/k8s-sidecar-arm64"
+          docker rm "$id"
+          file "$RUNNER_TEMP/k8s-sidecar-arm64" | tee /dev/stderr | grep -q "ARM aarch64"
+          printf '\nlinux/arm64 binary: %s bytes\n' "$(stat -c %s "$RUNNER_TEMP/k8s-sidecar-arm64")" >> "$GITHUB_STEP_SUMMARY"
       - name: Sizes on main so far
         run: |
           if git fetch --quiet --depth=1 origin badges; then

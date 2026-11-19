@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.2 (unreleased)
+- Images for **linux/arm64** as well as linux/amd64 (one multi-arch image). arm64 is cross-compiled in the Dockerfile, so builds need no emulation.
+
 ## 0.1.1 (2026-11-16)
 - Image runs as numeric user `65532` instead of `nonroot`, so pods with `runAsNonRoot: true` but no `runAsUser` can start it.
 

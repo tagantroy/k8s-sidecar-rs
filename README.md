@@ -13,6 +13,7 @@ A small Rust drop-in for [kiwigrid/k8s-sidecar](https://github.com/kiwigrid/k8s-
 | Image (compressed, amd64) | 29.2 MB (2.14.1) | 14.6 MB |
 | Language | Python | Rust (`kube`, `tokio`) |
 | Base | Python | distroless, non-root |
+| Platforms | | linux/amd64, linux/arm64 (from 0.1.2) |
 
 Measured 2026-11-16 in the same Grafana pod (kube-prometheus-stack, k3s 1.37) before and after switching the image: working-set memory from `kubectl top pod --containers`, as kept by Prometheus (`container_memory_working_set_bytes`). Together: ~161 MiB → ~3 MiB.
 

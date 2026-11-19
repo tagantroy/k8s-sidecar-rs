@@ -1,4 +1,5 @@
-# On a tag vX.Y.Z: image ghcr.io/<owner>/k8s-sidecar-rs:X.Y.Z (linux/amd64).
+# On a tag vX.Y.Z: image ghcr.io/<owner>/k8s-sidecar-rs:X.Y.Z for linux/amd64 and linux/arm64
+# (one multi-arch image; arm64 is cross-compiled, see the Dockerfile).
 name: release
 
 on:
@@ -30,7 +31,7 @@ jobs:
       - uses: docker/build-push-action@v7.4.0
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/k8s-sidecar-rs:${{ steps.v.outputs.version }}
           labels: |
