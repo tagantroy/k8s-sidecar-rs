@@ -15,7 +15,7 @@ so we can agree on the approach.
   touches the Kubernetes side.
 
 ## Building and testing
-Needs Rust (see `rust-version` in `Cargo.toml`) and, for the end-to-end test, Docker that
+Needs Rust: the version in `rust-toolchain.toml`, which `rustup` installs and uses automatically. It's also the minimum we support (`rust-version` in `Cargo.toml`) and the Docker build's version; CI checks all three match, so upgrade Rust in all three at once and, for the end-to-end test, Docker that
 allows privileged containers.
 
 ```sh

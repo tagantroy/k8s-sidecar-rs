@@ -47,3 +47,6 @@ updates:
       default-days: 14
     commit-message:
       prefix: image
+    ignore:
+      # Rust is upgraded deliberately: rust-toolchain.toml, Cargo.toml and the Dockerfile together.
+      - dependency-name: rust
