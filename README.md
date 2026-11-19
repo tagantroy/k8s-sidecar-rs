@@ -1,8 +1,10 @@
 # k8s-sidecar-rs
 
+[![binary size](../../raw/badges/binary.svg)](../../actions/workflows/ci.yml) [![image size](../../raw/badges/image.svg)](../../actions/workflows/ci.yml)
+
 A small Rust drop-in for [kiwigrid/k8s-sidecar](https://github.com/kiwigrid/k8s-sidecar): it watches ConfigMaps and Secrets with a label, writes their data as files into a folder, and calls a reload URL after changes. Grafana's Helm chart runs two copies of it (dashboards and data sources).
 
-**Why:** the Python original uses ~80 MiB per copy. This one uses **1–2 MiB** (measured on a k3s cluster, below), in a 6.8 MB binary.
+**Why:** the Python original uses ~80 MiB per copy. This one uses **1–2 MiB** (measured on a k3s cluster, below), in a single ~9 MB binary (the badges above show the current sizes, measured by CI on every change).
 
 | | kiwigrid/k8s-sidecar | k8s-sidecar-rs |
 |---|---|---|
@@ -69,6 +71,9 @@ grafana:                      # under kube-prometheus-stack; top level in the gr
 cargo test                                # unit tests
 cargo test --test k3s -- --ignored        # end to end against a real k3s (needs Docker)
 ```
+
+## Contributing and security
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or [MIT license](LICENSE-MIT) at your option.
