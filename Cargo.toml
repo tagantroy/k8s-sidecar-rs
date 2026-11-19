@@ -2,7 +2,7 @@
 name = "k8s-sidecar-rs"
 version = "0.1.2"
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.99"
 license = "MIT OR Apache-2.0"
 description = "Small drop-in for kiwigrid/k8s-sidecar: syncs labelled ConfigMaps and Secrets to files and triggers a reload (e.g. Grafana dashboards and data sources)"
 repository = "https://github.com/tagantroy/k8s-sidecar-rs"

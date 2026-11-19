@@ -1,0 +1,8 @@
+# The one Rust version for everything: CI and local builds (rustup reads this file), the Docker
+# build (`FROM rust:<this>-slim-trixie` in the Dockerfile) and the minimum we support
+# (`rust-version` in Cargo.toml). CI fails if the three disagree. Upgrading Rust means changing
+# all three in one commit (Dependabot doesn't touch the Rust image).
+[toolchain]
+channel = "1.99.1"
+components = ["clippy", "rustfmt"]
+profile = "minimal"
