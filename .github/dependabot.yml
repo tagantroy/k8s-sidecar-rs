@@ -1,0 +1,49 @@
+# Dependabot: weekly update PRs for the Rust crates, the GitHub Actions and the Dockerfile's base
+# images. CI (tests incl. k3s, cargo audit, sizes) runs on each PR.
+#
+# cooldown: only versions released at least 14 days ago, the project's rule (CONTRIBUTING.md).
+# Security updates don't wait: they come as soon as an advisory is published.
+# Docs: https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: deps
+    groups:
+      # kube and k8s-openapi must move together (kube.rs/upgrading).
+      kube:
+        patterns: ["kube", "kube-*", "k8s-openapi"]
+      # Everything else that isn't a breaking release, in one PR.
+      cargo-compatible:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # FROM lines in the Dockerfile: the Rust build image (pinned tag) and distroless.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 14
+    commit-message:
+      prefix: image
